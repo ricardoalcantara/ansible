@@ -1,0 +1,7 @@
+- hosts: vms
+  remote_user: root
+  tasks:
+    - name: "K3s | Uninstall"
+      shell: "/usr/local/bin/k3s-uninstall.sh"
+      changed_when: false
+       

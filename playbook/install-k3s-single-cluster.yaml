@@ -1,0 +1,22 @@
+- hosts: vms
+  remote_user: root
+  tasks:
+    - name: "K3s | Install"
+      shell: "curl -sfL https://get.k3s.io | sh -"
+      changed_when: false
+    - name: make sure k3s is running
+      ansible.builtin.service:
+        name: k3s
+        state: started
+    - name: Wait until Ingress responde
+      uri:
+       url: 'http://localhost'
+       return_content: yes
+       validate_certs: no
+       status_code:
+         - 404
+      until: uri_output.status == 404
+      retries: 18 # Retries for 18 * 10 seconds = 200 seconds = 3 minutes
+      delay: 10 # Every 5 seconds
+      register: uri_output
+
