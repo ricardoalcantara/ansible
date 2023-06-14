@@ -29,6 +29,8 @@
         url : https://github.com/docker/compose/releases/download/v2.18.1/docker-compose-linux-x86_64
         dest: /usr/local/bin/docker-compose
         mode: 'a+x'
+    # - name: add userpermissions
+    #   shell: "usermod -aG docker user"
     - name: make sure docker is running
       ansible.builtin.service:
         name: docker

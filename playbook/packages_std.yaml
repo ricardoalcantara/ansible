@@ -1,0 +1,12 @@
+- hosts: all
+  become: true
+  tasks:
+  - name: Standard Packages
+    ansible.builtin.package:
+      name: 
+        - vim
+        - curl
+        - wget
+        - htop
+        - tmux
+      state: present

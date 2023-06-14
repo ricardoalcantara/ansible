@@ -1,0 +1,59 @@
+---
+- hosts: all
+  vars_prompt:
+    - name: remote_user
+      prompt: Remote Admin User?
+      private: false
+      default: devops
+    
+    - name: password
+      prompt: New password?
+      private: true
+      encrypt: sha512_crypt
+      # confirm: true
+  gather_facts: no
+  remote_user: "{{ remote_user }}"
+  become: true
+  tasks:
+    - name: Add a new user named devops
+      ansible.builtin.user:
+        name: devops
+        shell: /bin/bash
+        password: "{{ password }}"
+    
+    - name: Add devops user to the sudoers
+      copy:
+        dest: "/etc/sudoers.d/devops"
+        content: "devops  ALL=(ALL) ALL"
+    
+    - name: Deploy SSH Key
+      ansible.posix.authorized_key: 
+        user: devops
+        state: present
+        key: '{{ item }}'
+      with_file:
+        - /home/ricardo/.ssh/id_ed25519.pub
+        - /mnt/c/Users/alcan/.ssh/id_rsa.pub
+    
+    - name: Disable Password Authentication
+      ansible.builtin.lineinfile:
+        dest: /etc/ssh/sshd_config
+        regexp: '^PasswordAuthentication'
+        line: "PasswordAuthentication no"
+        state: present
+        backup: yes
+    
+    - name: Disable Root Login
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^PermitRootLogin'
+        line: "PermitRootLogin no"
+        state: present
+        backup: yes
+      notify:
+        - restart ssh
+  handlers:
+    - name: restart ssh
+      service:
+        name=sshd
+        state=restarted
